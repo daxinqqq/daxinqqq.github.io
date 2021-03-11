@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://daxinqqq.github.io</id>
     <title>逸空blog</title>
-    <updated>2021-03-11T10:07:34.314Z</updated>
+    <updated>2021-03-11T10:11:09.544Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://daxinqqq.github.io"/>
     <link rel="self" href="https://daxinqqq.github.io/atom.xml"/>
@@ -10,6 +10,76 @@
     <logo>https://daxinqqq.github.io/images/avatar.png</logo>
     <icon>https://daxinqqq.github.io/favicon.ico</icon>
     <rights>All rights reserved 2021, 逸空blog</rights>
+    <entry>
+        <title type="html"><![CDATA[常用的分布式ID设计方案]]></title>
+        <id>https://daxinqqq.github.io/post/chang-yong-de-fen-bu-shi-id-she-ji-fang-an/</id>
+        <link href="https://daxinqqq.github.io/post/chang-yong-de-fen-bu-shi-id-she-ji-fang-an/">
+        </link>
+        <updated>2021-03-11T10:10:16.000Z</updated>
+        <content type="html"><![CDATA[<h2 id="分布式id定义">分布式ID定义：</h2>
+<ul>
+<li>全局唯一，区别于单点系统的唯一，全局要求分布式系统内唯一。</li>
+<li>有序性，通常需要保证生成的ID是有序递增的。例如，数据库存储等场景中，有序ID便于确定数据位置，往往更加高效。</li>
+</ul>
+<h2 id="典型方案">典型方案：</h2>
+<ul>
+<li>
+<p>基于数据库自增序列实现。好处是简单易用，但在扩展性和可靠性等方面存在局限。</p>
+</li>
+<li>
+<p>基于Twitter早期开源的Snowflake的实现，以及相关改动方案。其结构定义：整体长度通常为64（1+41+10+12=64）位，适合使用long类型存储。</p>
+<ul>
+<li>
+<p>头部是1位的正负标识位。</p>
+</li>
+<li>
+<p>紧跟的高位标识是41位时间戳，通常使用System.currentTimeMillis()。</p>
+</li>
+<li>
+<p>后面是10位的workerID，标准定义是5位数据中心+5位机器ID组成了机器编号，以区分不同的机器节点。</p>
+</li>
+<li>
+<p>最后的12位就是单位毫秒内可生成的序列号的数目的理论极限。</p>
+</li>
+</ul>
+</li>
+<li>
+<p>Redis、Zookeeper、MongoDB等中间件，也都有各种唯一ID解决方案。其中一些设计也可以算作是Snowflake方案的变种。例如，MongoDB的ObjectId提供了一个12 byte（96位）的ID定义，其中32位用于记录以秒为单位的事件，机器ID则为24位，16位用作进程ID，24位随机起始的计数序列。</p>
+</li>
+<li>
+<p>国内大厂开源的一些分布式ID实现。</p>
+</li>
+</ul>
+<p><strong>注：Snowflake并不受冬令时切换影响。Snowflake算法的Java实现，大都是依赖于System.currentTimeMillis()，这个函数会返回当前时间和1970年1月1号UTC事件相差的毫秒数，这个数值与夏/冬令时并没有关系。</strong></p>
+<h2 id="扩展">扩展：</h2>
+<h3 id="除了唯一和有序分布式系统通常还会额外希望分布式id保证">除了唯一和有序，分布式系统通常还会额外希望分布式ID保证：</h3>
+<ul>
+<li>有意义，包含更多信息，例如时间、业务等信息。这点和有序性存在一定关联，如果ID中包含时间，本身就可以保证一定的顺序。ID中包含额外信息，在分布式数据存储等场合中，有助于进一步优化数据访问的效率。</li>
+<li>高可用性，这是分布式系统的必然要求，上面的方案中，有的是真正意义的分布式，有的还是传统主从的思路，这一点取决于我们业务对扩展性和性能等方面的要求。</li>
+<li>紧凑性，ID的大小可能受到实际应用的制约，例如数据库存储往往对长ID不友好，太长的ID会降低Mysql等数据库索引的性能；编程语言在处理时也可能受数据类型长度限制。</li>
+</ul>
+<p>在具体生产环境中，还有可能提出对QPS等方面的具体要求，尤其是在国内一线大厂的业务规模下，更是需要考虑峰值业务场景的数量级层次要求。</p>
+<h3 id="主流方案优缺点分析">主流方案优缺点分析：</h3>
+<p>​	对于数据库自增方案，除了实现简单，它生成的ID还能够保证固定步长的递增，使用很方便。</p>
+<p>​	但是，每获取一个ID就会触发数据库的写请求，是一个代价高昂的操作，构建高扩展性、高性能解决方案比较复杂，更不要说扩容等场景的难度了。同时，保证数据库高可用性也存在挑战，数据库可能发生宕机，即使采取主从热备等措施，也可能出现ID重复等问题。</p>
+<p>​	实际大厂往往构建了多层的复合架构，例如美团公开的数据库方案Leaf-Segment，引入了起到缓存等作用的Leaf层，对数据库操作则是通过数据库中间件提供的批量操作，这样既能保证性能、扩展性，也能保证高可用。但是，这种方案对基础架构层面的要求很多，未必适合普通业务规模的需求。</p>
+<p>​	与其相比，Snowflake的好处是算法简单，依赖也很少，生成的序列可预测，性能也非常好，Twetter的峰值超过10w/s。但是，它也存在一些不足：</p>
+<ul>
+<li>
+<p>时钟偏斜问题（Clock Skew）：普通的计算机系统时钟并不能保证长久的一致性，可能发生时钟回拨等问题，这就会导致时间戳不准确，进而产生重复ID。针对这一点，Twetter曾经在文档中建议开启NTP。个人建议可以考虑同时将stepback设置为0，以禁止回调。从设计编码角度考虑，可以缓存历史时间戳，然后在序列生成之前进行校验，针对不合理情况进行重试、等待或报错。</p>
+</li>
+<li>
+<p>序列号的可预测性是把双刃剑，虽然简化了一些工程问题，但很多场景不适合可预测的ID。很容易被黑客猜测并利用。</p>
+</li>
+<li>
+<p>ID设计阶段需要谨慎考虑暴露出的信息。例如，Erlang版本的flake实现基于MAC地址计算WorkerID，在安全敏感的领域往往是不被允许的。</p>
+</li>
+<li>
+<p>从理论上说，类似Snowflake的方案由于时间数据位数的限制，存在与2038年问题相似的理论极限。</p>
+</li>
+</ul>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[Hello Gridea]]></title>
         <id>https://daxinqqq.github.io/post/hello-gridea/</id>
