@@ -3,7 +3,7 @@
     <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>MySQL数据库设计开发规范 | 逸空blog</title>
-<link rel="shortcut icon" href="https://daxinqqq.github.io/favicon.ico?v=1615542535812">
+<link rel="shortcut icon" href="https://daxinqqq.github.io/favicon.ico?v=1615543849231">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
 <link rel="stylesheet" href="https://daxinqqq.github.io/styles/main.css">
 <link rel="alternate" type="application/atom+xml" title="MySQL数据库设计开发规范 | 逸空blog - Atom Feed" href="https://daxinqqq.github.io/atom.xml">
@@ -22,7 +22,7 @@ MySQL数据库与 Oracle、 SQL Server 等数据库相比，有其内核上的�
       <div class="main-content">
         <div class="site-header">
   <a href="https://daxinqqq.github.io">
-  <img class="avatar" src="https://daxinqqq.github.io/images/avatar.png?v=1615542535812" alt="">
+  <img class="avatar" src="https://daxinqqq.github.io/images/avatar.png?v=1615543849231" alt="">
   </a>
   <h1 class="site-title">
     逸空blog
@@ -65,6 +65,10 @@ MySQL数据库与 Oracle、 SQL Server 等数据库相比，有其内核上的�
   </div>
   <div class="social-container">
     
+      
+        <a href="https://github.com/daxinqqq" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
       
     
       
@@ -314,9 +318,35 @@ KEY <code>idx_create_time</code>(<code>create_time</code>,<code>user_review_stat
         
 
         
+          
+            <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+<div id="gitalk-container"></div>
+
+<script>
+
+  var gitalk = new Gitalk({
+    clientID: 'b6c0ef2f475ed881573c',
+    clientSecret: 'b5493c0a95abe0d4828c20461a2b9cfc74ae8fed',
+    repo: 'daxinqqq.github.io',
+    owner: 'daxinqqq',
+    admin: ['daxinqqq'],
+    id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+    distractionFreeMode: false  // Facebook-like distraction free mode
+  })
+
+  gitalk.render('gitalk-container')
+
+</script>
+
+          
+
+          
+        
 
         <div class="site-footer">
-  Powered by <a href="https://github.com/daxinqqq" target="_blank">daxinqqq</a>
+  Powered by-<a href="https://github.com/daxinqqq" target="_blank"> daxinqqq</a>
   <a class="rss" href="https://daxinqqq.github.io/atom.xml" target="_blank">
     <i class="ri-rss-line"></i> RSS
   </a>
