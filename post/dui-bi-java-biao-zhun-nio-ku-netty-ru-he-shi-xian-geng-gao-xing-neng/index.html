@@ -1,0 +1,226 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>对比Java标准NIO库，Netty如何实现更高性能？ | 逸空blog</title>
+<link rel="shortcut icon" href="https://daxinqqq.github.io/favicon.ico?v=1615542535812">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://daxinqqq.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="对比Java标准NIO库，Netty如何实现更高性能？ | 逸空blog - Atom Feed" href="https://daxinqqq.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="从性能角度，Netty在基础的NIO等类库上进行了很多改进：
+
+更优雅的Reactor模式实现、灵活的线程模型、利用EventLoop等创新性的机制可以非常高效的管理成百上千的Channel。
+充分利用了Java的Zero-Copy机制，并..." />
+    <meta name="keywords" content="技术" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://daxinqqq.github.io">
+  <img class="avatar" src="https://daxinqqq.github.io/images/avatar.png?v=1615542535812" alt="">
+  </a>
+  <h1 class="site-title">
+    逸空blog
+  </h1>
+  <p class="site-description">
+    三两老友七八老酒，十村踏遍一生还在
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/life" class="menu">
+          相册
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              对比Java标准NIO库，Netty如何实现更高性能？
+            </h2>
+            <div class="post-info">
+              <span>
+                2021-03-12
+              </span>
+              <span>
+                5 min read
+              </span>
+              
+                <a href="https://daxinqqq.github.io/tag/meHeh8Qr-/" class="post-tag">
+                  # 技术
+                </a>
+              
+            </div>
+            
+              <img class="post-feature-image" src="https://api.lixingyong.com/api/images?postid=3&amp;type=url&amp;itype=image&amp;tc=640" alt="">
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <p>从性能角度，Netty在基础的NIO等类库上进行了很多改进：</p>
+<ul>
+<li>更优雅的Reactor模式实现、灵活的线程模型、利用EventLoop等创新性的机制可以非常高效的管理成百上千的Channel。</li>
+<li>充分利用了Java的Zero-Copy机制，并且从多角度降低内存分配和回收的开销。例如，使用池化的Direct Buffer等技术，提高IO性能的同时，减少了对象的创建和销毁；利用反射等技术直接操纵SelectionKey，使用数组而非Java容器等。</li>
+<li>使用更多本地代码。例如，直接利用JNI调用OPEN SSL等方式，获得比Java内建SSL引擎更好的性能。</li>
+<li>在通信协议，序列化等其他角度的优化。</li>
+</ul>
+<p>总结，Netty并没有Java核心类库那些强烈的通用性、跨平台等各种负担，针对性能等特定目标和Linux等特定环境，采取了一些极致的优化手段。</p>
+<h2 id="扩展">扩展：</h2>
+<h3 id="netty">Netty:</h3>
+<p>​	Netty是一个异步的，基于事件Client/Server的网络框架，目标是提供一种简单、快速构建网络应用的方式，同时保证高吞吐量、低延时、高可靠性。</p>
+<h3 id="与java-nio框架对比">与Java NIO框架对比：</h3>
+<p>​	Java的标准类库，由于其基础性、通用性的定位，往往更关注于技术模型上的抽象，而不是从一线开发者角度思考。Java NIO的设计也是，开发者需要深入掌握线程、IO、网络等相关概念，学习、开发成本大。</p>
+<p>​	Netty通过精巧设计的事件机制，将业务逻辑与无关技术逻辑进行隔离，并通过抽象，一定程度的填补了基础平台和业务开发的鸿沟，更有利于最佳实践的普及。</p>
+<p>除了核心的事件机制，Netty还提供了其他的功能：</p>
+<ul>
+<li>从网络协议的角度，Netty除了支持传输层的UDP、TCP、SCTP协议，也支持HTTP(S)、WebSocket等多种应用层协议，并不是单一协议的API。</li>
+<li>在应用中，需要将数据从Java对象转换成各种应用的数据格式，或者进行反向转换，Netty提供了一系列扩展的编解码框架，与应用场景无缝衔接，并且性能良好。</li>
+<li>它扩展了Java NIO Buffer，提供了自己的ByteBuf实现，并且深度支持Direct Buffer等技术，甚至hack了Java内部对Direct Buffer的分配和销毁等。同时，Netty也提供了更加完善的Scatter/Gather机制实现。</li>
+</ul>
+<p>可以看到，Netty的能力范围大大超过了Java核心类库中的NIO等API，可以说是一个从应用视角出发的产物。</p>
+<h3 id="netty入门代码浅析">Netty入门代码浅析：</h3>
+<figure data-type="image" tabindex="1"><img src="https://daxinqqq.github.io/post-images/1615542476300.png" alt="" loading="lazy"></figure>
+<ul>
+<li><strong>ServerBootstrap</strong>：服务器端程序的入口，这是Netty为简化网络程序配置和关闭等生命周期管理，所引入的Bootstrapping机制。通常我们要做的创建Channel、绑定端口、注册Handler等，都可以通过这个统一的入口，以Fluent API等形式完成，简化了API使用。与之对应，Bootstrap则是客户端的入口。</li>
+<li><strong>Channel</strong>：作为一个基于NIO的扩展框架，Channel和Selector等概念仍然是Netty的基础组件，但是针对应用开发需求，提供了相对易用的抽象。</li>
+<li><strong>EventLoop</strong>：这是Netty处理事件的核心机制。例子使用了EventLoopGroup。在NIO中通常要做的几件事，如注册感兴趣的事件，调度相应的Handler等，都是EventLoop负责。</li>
+<li><strong>ChannelFuture</strong>：这是Netty实现异步IO的基础之一，保证了同一个Channel操作的调用顺序。Netty扩展了Java标准的Future，提供了针对自己场景特有的Future定义。</li>
+<li><strong>ChannelHandler</strong>：这是应用开发者<strong>放置业务逻辑的主要地方</strong>。</li>
+<li><strong>ChannelPipeline</strong>：它是ChannelHandler链条的容器，每个Channel创建后，自动被分配到一个ChannelPipeline。在上面的代码中，通过ServerBootstrap注册了ChannelInitializer，并且实现了initChannel方法，在该方法中承担了向ChannelPipeline安装其他Channel的任务。</li>
+</ul>
+<p><strong>可以参考下图，忽略InBound/OutBound Handler的细节，理解这几个基本单元的操作流程和对应关系：</strong><br>
+<img src="https://daxinqqq.github.io/post-images/1615542389163.png" alt="" loading="lazy"></p>
+<p>对比Java标准NIO的代码，Netty提供了相对高层次的封装，减少了对Selector等细节的操作，而EventLoop、Pipeline等机制简化了编程模型，开发者不用担心并发等问题，一定程度上简化了应用代码的开发。并且这一切并没有以可靠性、可扩展性为代价，反而将其大幅度提高。</p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#%E6%89%A9%E5%B1%95">扩展：</a>
+<ul>
+<li><a href="#netty">Netty:</a></li>
+<li><a href="#%E4%B8%8Ejava-nio%E6%A1%86%E6%9E%B6%E5%AF%B9%E6%AF%94">与Java NIO框架对比：</a></li>
+<li><a href="#netty%E5%85%A5%E9%97%A8%E4%BB%A3%E7%A0%81%E6%B5%85%E6%9E%90">Netty入门代码浅析：</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://daxinqqq.github.io/post/mysql-shu-ju-ku-she-ji-kai-fa-gui-fan/">
+              <h3 class="post-title">
+                MySQL数据库设计开发规范
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/daxinqqq" target="_blank">daxinqqq</a>
+  <a class="rss" href="https://daxinqqq.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>
