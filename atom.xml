@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://daxinqqq.github.io</id>
     <title>逸空blog</title>
-    <updated>2022-01-04T07:11:44.698Z</updated>
+    <updated>2022-01-04T08:23:27.256Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://daxinqqq.github.io"/>
     <link rel="self" href="https://daxinqqq.github.io/atom.xml"/>
@@ -10,6 +10,401 @@
     <logo>https://daxinqqq.github.io/images/avatar.png</logo>
     <icon>https://daxinqqq.github.io/favicon.ico</icon>
     <rights>All rights reserved 2022, 逸空blog</rights>
+    <entry>
+        <title type="html"><![CDATA[tony数据脱敏框架]]></title>
+        <id>https://daxinqqq.github.io/post/tony-shu-ju-tuo-min-kuang-jia/</id>
+        <link href="https://daxinqqq.github.io/post/tony-shu-ju-tuo-min-kuang-jia/">
+        </link>
+        <updated>2022-01-04T08:17:23.000Z</updated>
+        <content type="html"><![CDATA[<h2 id="1tony框架背景">1.tony框架背景</h2>
+<ul>
+<li>在京车会业务量日益剧增的背景下，大量数据在各种业务活动中产生，数据安全控制一直是治理的重要环节，数据脱敏属于安全控制的范畴。对互联网公司来说，数据安全一直是极为重视和敏感的话题。数据脱敏是指对某些敏感信息通过脱敏规则进行数据的变形，实现敏感隐私数据的可靠保护。涉及客户安全数据或者一些商业性敏感数据，如身份证号、手机号、卡号、客户号等个人信息按照相关部门规定，都需要进行数据脱敏。</li>
+<li>在京车会现有的微服务技术架构背景下，敏感数据的使用存在如下痛点：
+<ul>
+<li><strong>敏感数据与PC、APP客户端使用明文数据交互，数据安全无法保证。</strong></li>
+<li><strong>敏感数据浏览缺乏监控，无法针对性的做数据治理。</strong></li>
+<li><strong>微服务架构系统应用多而杂，期望引入一套通用的方案统一解决敏感数据安全问题。</strong></li>
+</ul>
+</li>
+</ul>
+<p>基于以上痛点，tony提供了一套完整、安全、透明化、低改造成本的数据脱敏整合解决方案。</p>
+<h2 id="2tony框架简介">2.tony框架简介</h2>
+<p>Tony是一款敏感数据脱敏与浏览记录监控工具，可对系统中的敏感信息进行脱敏处理，并在泄漏时提供追溯依据，为企业数据共享、迁移、分发提供安全保护措施。该项目基于spring进行开发，提供spring-boot-starter启动包，接入简单，主要实现功能如下：</p>
+<p>​	<strong>灵活的脱敏方案</strong></p>
+<p>业务系统的数据千变万化，为确保所有业务数据都能够正常进行敏感信息处理，数据脱敏提供高灵活性的自定义脱敏配置。通过丰富多样的脱敏规则定义，敏感数据处理可实现高度契合业务的脱敏处理。</p>
+<p>​	<strong>统一的明文数据管理</strong></p>
+<p>框架内置敏感数据对应的明文数据管理流程，将明文数据统一缓存管理，提供统一的明文数据访问api。</p>
+<p>​	<strong>浏览记录留痕</strong></p>
+<p>针对不同用户对敏感信息明文数据的浏览动作，接入方可以自定义日志格式模版记录输出到日志文件中，做到每条数据的浏览有迹可循。</p>
+<p>​	<strong>异常浏览量预警</strong></p>
+<p>接入方通过自定义脱敏配置可以设置不同场景的敏感浏览明文数据量阈值，开启告警后，当用户访问明文数据次数到达阈值后，会触发预警流程，接入方可自定义预警逻辑。</p>
+<h3 id="tony整体架构">tony整体架构：</h3>
+<p>tony-core模块定义了基本的脱敏功能实现，整体流程采用spi机制预留了充分的扩展空间。以tony-core为底座，集成汽车现有技术栈提供了tony-transformers模块对基础的脱敏功能进行了扩展：异步的缓存事件分发，分布式明文数据缓存，对接集团安全部门的敏感日志留痕，异常浏览量的邮件预警。<br>
+<img src="https://daxinqqq.github.io/post-images/1641284327860.png" alt="" loading="lazy"></p>
+<table>
+<thead>
+<tr>
+<th>name</th>
+<th>desc</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MaskAnnotationProcessor</td>
+<td>业务场景代理，通过注解代理对应的脱敏场景方法。</td>
+</tr>
+<tr>
+<td>IMaskProcess</td>
+<td>数据脱敏处理器</td>
+</tr>
+<tr>
+<td>IMaskLogProcessor</td>
+<td>数据浏览日志处理器</td>
+</tr>
+<tr>
+<td>IMaskCacheProcessor</td>
+<td>明文数据缓存处理器</td>
+</tr>
+<tr>
+<td>IMaskLimitProcessor</td>
+<td>明文数据访问限额管理</td>
+</tr>
+<tr>
+<td>IMaskWarningProcessor</td>
+<td>异常浏览预警处理</td>
+</tr>
+<tr>
+<td>IMaskContent</td>
+<td>上下文信息处理器</td>
+</tr>
+<tr>
+<td>IUnMaskProcessor</td>
+<td>明文数据获取处理器</td>
+</tr>
+<tr>
+<td>DefaultUnMaskProcessorAdapter</td>
+<td>明文数据获取适配器，提供从缓存中获取明文数据功能。</td>
+</tr>
+<tr>
+<td>DefaultMaskCacheProcess</td>
+<td>明文数据缓存处理器，提供分布式缓存功能。</td>
+</tr>
+<tr>
+<td>DefaultMaskContent</td>
+<td>上下文信息处理器，提供ThreadLocal实现。</td>
+</tr>
+<tr>
+<td>DefaultMaskWarningProcessor</td>
+<td>异常浏览预警处理，提供邮件告警实现。</td>
+</tr>
+<tr>
+<td>PlaintextProcess</td>
+<td>明文属于获取接口约束，可自定义明文数据获取的扩展。</td>
+</tr>
+<tr>
+<td>MaskMonitorCacheHandle</td>
+<td>缓存时间消费，异步消费缓存事件，存储明文数据。</td>
+</tr>
+</tbody>
+</table>
+<h3 id="tony处理流程详解">tony处理流程详解：</h3>
+<p>tony和业务代码部署在一起，接入应用通过脱敏场景与脱敏配置项的指定来实现对应业务场景的脱敏代理。业务代码只需配置场景注解即可兼容使用。此时敏感数据的脱敏工作由tony负责，tony会拦截业务场景的响应数据，对敏感信息进行脱敏处理。</p>
+<figure data-type="image" tabindex="1"><img src="https://daxinqqq.github.io/post-images/1641284364442.png" alt="" loading="lazy"></figure>
+<h3 id="tony脱敏配置详解">tony脱敏配置详解：</h3>
+<p>脱敏配置主要分为四部分：脱敏上下文配置，脱敏场景配置，脱敏预警配置以及日志留痕模版，其详情如下图所示：</p>
+<figure data-type="image" tabindex="2"><img src="https://daxinqqq.github.io/post-images/1641284388459.png" alt="" loading="lazy"></figure>
+<table>
+<thead>
+<tr>
+<th>key</th>
+<th>name</th>
+<th>desc</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>tony.appName</td>
+<td>接入系统名称</td>
+<td></td>
+</tr>
+<tr>
+<td>tony.maskSourceName</td>
+<td>脱敏白名单</td>
+<td>控制统一场景的接口对不同调用方进行数据是否脱敏控制</td>
+</tr>
+<tr>
+<td>tony.mask.XXX</td>
+<td>脱敏场景</td>
+<td>XXX为具体场景的key</td>
+</tr>
+<tr>
+<td>tony.mask.XXX.enable</td>
+<td>动态开关</td>
+<td>控制是否开启脱敏</td>
+</tr>
+<tr>
+<td>tony.mask.XXX.limits</td>
+<td>明文浏览限额</td>
+<td>限制明文浏览次数</td>
+</tr>
+<tr>
+<td>tony.mask.XXX.cacheKey</td>
+<td>数据缓存解析规则</td>
+<td>示例：STATEMENT_BILL_PAGE:${argItem.id}</td>
+</tr>
+<tr>
+<td>tony.types.YYY</td>
+<td>脱敏字段</td>
+<td>YYY为具体字段的key</td>
+</tr>
+<tr>
+<td>tony.types.YYY.regex</td>
+<td>脱敏规则配置</td>
+<td>脱敏的正则表达式 示例：(\d{3})\d{4}(\d{4})</td>
+</tr>
+<tr>
+<td>tony.types.YYY.replacement</td>
+<td>脱敏规则配置</td>
+<td>脱敏的正则表达式 示例：$1****$2</td>
+</tr>
+<tr>
+<td>tony.types.YYY.logName</td>
+<td>日志字段名称</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="3-系统详细设计">3. 系统详细设计</h2>
+<h2 id="31-详细设计">3.1 详细设计</h2>
+<h3 id="311-活动图">3.1.1 活动图</h3>
+<figure data-type="image" tabindex="3"><img src="https://daxinqqq.github.io/post-images/1641284436912.png" alt="" loading="lazy"></figure>
+<h3 id="312-时序图">3.1.2 时序图</h3>
+<figure data-type="image" tabindex="4"><img src="https://daxinqqq.github.io/post-images/1641284473212.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="5"><img src="https://daxinqqq.github.io/post-images/1641284493564.png" alt="" loading="lazy"></figure>
+<h3 id="313-类图">3.1.3 类图</h3>
+<figure data-type="image" tabindex="6"><img src="https://daxinqqq.github.io/post-images/1641284521364.png" alt="" loading="lazy"></figure>
+<table>
+<thead>
+<tr>
+<th>包</th>
+<th>职责</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>com.jd.car.tony.annoation</strong></td>
+<td>注解层 负责声明要被代理的业务操作。</td>
+</tr>
+<tr>
+<td><strong>com.jd.car.tony.limit</strong></td>
+<td>负责记录敏感数据的访问次数，并提供预警。</td>
+</tr>
+<tr>
+<td><strong>com.jd.car.tony.mask</strong></td>
+<td>管理基础配置，并根据配置进行敏感数据遮盖脱敏。</td>
+</tr>
+<tr>
+<td><strong>com.jd.car.tony.log</strong></td>
+<td>记录敏感数据的访问操作，输出统一格式的日志信息。</td>
+</tr>
+<tr>
+<td><strong>com.jd.car.tony.unmask</strong></td>
+<td>提供敏感数据的明文信息查看功能。</td>
+</tr>
+<tr>
+<td><strong>com.jd.car.tony.support</strong></td>
+<td>util包，负责全局功能的支持。</td>
+</tr>
+</tbody>
+</table>
+<h2 id="4-接入使用">4. 接入使用</h2>
+<h4 id="41-引入坐标">4.1 引入坐标</h4>
+<pre><code class="language-xml">					&lt;dependency&gt;
+                &lt;groupId&gt;com.jd.car&lt;/groupId&gt;
+                &lt;artifactId&gt;tony-spring-boot-starter&lt;/artifactId&gt;
+                &lt;version&gt;1.1-SNAPSHOT&lt;/version&gt;
+            &lt;/dependency&gt;
+</code></pre>
+<h4 id="42-yaml配置">4.2 yaml配置</h4>
+<pre><code class="language-yaml">tony:
+  appName: &quot;appName&quot;
+  #鉴权信息key
+  sessionName: &quot;&quot;
+  systemName: &quot;systemName&quot;
+  warningName: &quot;京车会&quot;
+  #脱敏白名单
+  maskSourceName: &quot;&quot;
+  types:
+    name:
+      regex: &quot;([\\u4e00-\\u9fa5a-z0-9]{1})[\\u4e00-\\u9fa5a-z0-9]+&quot;
+      replacement: &quot;$1**&quot;
+      logName: &quot;accountName&quot;
+  mask:
+    order:
+      enable: true
+      limits: 100
+      limitError: false
+      cacheKey: &quot;order:${argItem.id}&quot;
+      menuName: &quot;场景名称&quot;
+      name: &quot;order&quot;
+      #日志记录操作类型
+      maskLogOp: &quot;&quot;
+      maskLogAccountType: 3
+      
+   #预警邮箱设置
+   mail:
+    mailHost: 
+    mailPort: 
+    mailUser: 
+    mailPwd: 
+    mailFrom: 
+    mailTo: 
+    copyto: 
+    sendFlag: 
+    
+ #异步事件缓存明文数据配置，分布式缓存
+ jd:
+  cache:
+    jimdb:
+      enable: false
+      url: ''
+  event:
+    enable: true
+    queue:
+      # 自定义queue名字，例如monitorQueue
+      maskMonitorQueue:
+        retryCount: 3
+        maxBakSize: 1000
+        # monitorHandle 处理事件的beanName
+        handlerBean: maskMonitorCacheHandle 
+</code></pre>
+<h4 id="43-日志文件配置">4.3 日志文件配置</h4>
+<pre><code class="language-xml">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;configuration scan=&quot;true&quot; scanPeriod=&quot;60 seconds&quot; debug=&quot;false&quot;&gt;
+
+    &lt;contextName&gt;demo&lt;/contextName&gt;
+    &lt;!-- 日志最大的历史 单位：天 --&gt;
+    &lt;property name=&quot;maxHistory&quot; value=&quot;90&quot;/&gt;
+
+    &lt;property name=&quot;LOG_PATTERN&quot;
+              value=&quot;%d{yyyy-MM-dd HH:mm:ss.SSS,GMT+8:00} -%5p ${PID:- } --- [%X{PFTID}][%t] %-40.40logger{39}[%L] : %m%n&quot;/&gt;
+
+    &lt;property name=&quot;LOG_CHARSET&quot; value=&quot;UTF-8&quot;/&gt;
+
+    &lt;property name=&quot;LOG_DES_PATTERN&quot; value=&quot;%msg%n&quot; /&gt;
+
+    &lt;!-- 彩色日志依赖的渲染类 --&gt;
+    &lt;conversionRule conversionWord=&quot;clr&quot; converterClass=&quot;org.springframework.boot.logging.logback.ColorConverter&quot;/&gt;
+    &lt;conversionRule conversionWord=&quot;wex&quot;
+                    converterClass=&quot;org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter&quot;/&gt;
+    &lt;conversionRule conversionWord=&quot;wEx&quot;
+                    converterClass=&quot;org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter&quot;/&gt;
+
+    &lt;property name=&quot;LOG_PATTERN&quot;
+              value=&quot;%d{yyyy-MM-dd HH:mm:ss.SSS,GMT+8:00} -%5p ${PID:- } --- [%X{PFTID}][%t] %-40.40logger{39}[%L] : %m%n&quot;/&gt;
+
+    &lt;!-- 彩色日志格式 --&gt;
+    &lt;property name=&quot;CONSOLE_LOG_PATTERN&quot;
+              value=&quot;${CONSOLE_LOG_PATTERN:-%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%X{PFTID}][%15.15t]){faint} %clr(%-40.40logger{39}[%L]){cyan} %clr(:){faint} %m%n}&quot;/&gt;
+
+
+    &lt;appender name=&quot;mask&quot; class=&quot;ch.qos.logback.core.rolling.RollingFileAppender&quot;&gt;
+        &lt;file&gt;${log.path}/today_log/mask.log&lt;/file&gt;
+        &lt;filter class=&quot;ch.qos.logback.classic.filter.ThresholdFilter&quot;&gt;
+            &lt;level&gt;INFO&lt;/level&gt;
+        &lt;/filter&gt;
+        &lt;rollingPolicy class=&quot;ch.qos.logback.core.rolling.TimeBasedRollingPolicy&quot;&gt;
+            &lt;fileNamePattern&gt;${log.path}/history_logs/mask-%d{yyyy-MM-dd}.log&lt;/fileNamePattern&gt;
+            &lt;maxHistory&gt;30&lt;/maxHistory&gt;
+        &lt;/rollingPolicy&gt;
+        &lt;encoder&gt;
+            &lt;charset&gt;${LOG_CHARSET}&lt;/charset&gt;
+            &lt;pattern&gt;${LOG_DES_PATTERN}&lt;/pattern&gt;
+        &lt;/encoder&gt;
+    &lt;/appender&gt;
+    &lt;logger name=&quot;com.jd.car.tony.log.DefaultMaskLogProcessor&quot; additivity=&quot;false&quot;&gt;
+        &lt;level value=&quot;INFO&quot; /&gt;
+        &lt;appender-ref ref=&quot;mask&quot; /&gt;
+    &lt;/logger&gt;
+
+&lt;/configuration&gt;
+</code></pre>
+<h4 id="43-场景接入">4.3 场景接入</h4>
+<pre><code class="language-java"> /**
+     * 测试脱敏
+     *
+     * @return
+     */
+    @RequestMapping(&quot;test&quot;)
+    @MaskMethod(&quot;order&quot;)
+    public DemoResult test(AuthInfoBO authInfo) {
+        return new DemoResult();
+    }
+
+    /**
+     * 测试脱敏
+     *
+     * @return
+     */
+    @RequestMapping(&quot;test-list&quot;)
+    @MaskMethod(&quot;order&quot;)
+    public List&lt;DemoResult&gt; testList(AuthInfoBO authInfo) {
+        List&lt;DemoResult&gt; objects = Lists.newArrayList();
+        objects.add(new DemoResult());
+        objects.add(new DemoResult());
+        return objects;
+    }
+
+ 		@Autowired
+    private IUnMaskProcessor unMaskProcessorProxy;
+
+    /**
+     * 测试反脱敏
+     *
+     * @return
+     */
+    @RequestMapping(&quot;unmask&quot;)
+    public Map testUnMask(@RequestBody UnMaskRequest unMaskRequest, AuthInfoBO authInfo) {
+        return unMaskProcessorProxy.unMask(unMaskRequest, authInfo);
+    }
+</code></pre>
+<h4 id="43-脱敏字段配置">4.3 脱敏字段配置</h4>
+<pre><code class="language-java">@Data
+public class DemoResult {
+
+    @Mask(type = &quot;name&quot;)
+    private String userName = &quot;jajajaasjcij&quot;;
+
+    @Mask(type = &quot;phone&quot;)
+    private String userTel = &quot;18911112222&quot;;
+
+    private Long orderId = 1L;
+
+}
+</code></pre>
+<h4 id="44-业务监控">4.4 业务监控</h4>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">业务监控点</th>
+<th style="text-align:left">触发逻辑</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">敏感数据明文查看</td>
+<td style="text-align:left">单账号、单日、单接口访问次数到达访问限额时，则发送邮件给权限管理人员。</td>
+</tr>
+<tr>
+<td style="text-align:left">敏感数据查询日志</td>
+<td style="text-align:left">敏感数据脱敏后、明文数据查看时，按集团要求格式单独记录到日志文件中。</td>
+</tr>
+</tbody>
+</table>
+<h2 id="5-tony现状与规划">5. tony现状与规划</h2>
+<p>Tony数据脱敏框架接入简单，可灵活配置完成不同业务场景的敏感数据脱敏需求，解决了与客户端使用明文数据交互，数据安全的问题。并且接入数据浏览监控功能，为数据治理预留入口。引入了明文数据缓存功能，节省了明文数据查询的二次开发工作。目前已全面接入京车会商户系统并上线正式使用。预计后续将推广到整个生活服务事业群。</p>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[对比Java标准NIO库，Netty如何实现更高性能？]]></title>
         <id>https://daxinqqq.github.io/post/dui-bi-java-biao-zhun-nio-ku-netty-ru-he-shi-xian-geng-gao-xing-neng/</id>
