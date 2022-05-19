@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://daxinqqq.github.io</id>
     <title>藏拙</title>
-    <updated>2022-05-19T10:51:11.855Z</updated>
+    <updated>2022-05-19T10:56:18.825Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://daxinqqq.github.io"/>
     <link rel="self" href="https://daxinqqq.github.io/atom.xml"/>
@@ -150,12 +150,10 @@ vi /etc/docker/daemon.json
 #重启docker
 systemctl restart docker.service
 
-​````shell
-
-----
-### mysql
-​````shell
-#docker安装mysql
+</code></pre>
+<hr>
+<h3 id="mysql">mysql</h3>
+<pre><code class="language-shell">#docker安装mysql
 #docker pull --platform linux/x86_64 mysql
 docker pull biarms/mysql:5.7.30-linux-arm32v7
 

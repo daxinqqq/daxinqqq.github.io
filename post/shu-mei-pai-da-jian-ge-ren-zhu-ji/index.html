@@ -3,7 +3,7 @@
     <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>树莓派搭建个人主机 | 藏拙</title>
-<link rel="shortcut icon" href="https://daxinqqq.github.io/favicon.ico?v=1652957468620">
+<link rel="shortcut icon" href="https://daxinqqq.github.io/favicon.ico?v=1652957776699">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
 <link rel="stylesheet" href="https://daxinqqq.github.io/styles/main.css">
 <link rel="alternate" type="application/atom+xml" title="树莓派搭建个人主机 | 藏拙 - Atom Feed" href="https://daxinqqq.github.io/atom.xml">
@@ -28,7 +28,7 @@
       <div class="main-content">
         <div class="site-header">
   <a href="https://daxinqqq.github.io">
-  <img class="avatar" src="https://daxinqqq.github.io/images/avatar.png?v=1652957468620" alt="">
+  <img class="avatar" src="https://daxinqqq.github.io/images/avatar.png?v=1652957776699" alt="">
   </a>
   <h1 class="site-title">
     藏拙
@@ -239,12 +239,10 @@ vi /etc/docker/daemon.json
 #重启docker
 systemctl restart docker.service
 
-​````shell
-
-----
-### mysql
-​````shell
-#docker安装mysql
+</code></pre>
+<hr>
+<h3 id="mysql">mysql</h3>
+<pre><code class="language-shell">#docker安装mysql
 #docker pull --platform linux/x86_64 mysql
 docker pull biarms/mysql:5.7.30-linux-arm32v7
 
@@ -578,6 +576,7 @@ netstat -ntlp
 <li><a href="#git">git</a></li>
 <li><a href="#java">java</a></li>
 <li><a href="#docker">docker</a></li>
+<li><a href="#mysql">mysql</a></li>
 <li><a href="#zookeeper">zookeeper</a></li>
 <li><a href="#redis">redis</a></li>
 <li><a href="#maven%E5%9B%BD%E5%86%85%E4%BB%93%E5%BA%93%E9%85%8D%E7%BD%AE">maven国内仓库配置</a></li>
