@@ -1,0 +1,672 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>树莓派搭建个人主机 | 藏拙</title>
+<link rel="shortcut icon" href="https://daxinqqq.github.io/favicon.ico?v=1652956404630">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://daxinqqq.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="树莓派搭建个人主机 | 藏拙 - Atom Feed" href="https://daxinqqq.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="清单
+硬件
+
+树莓派4b 4g 主板一块（带外壳套餐） ￥580+
+512G内存卡（附带读卡器） ￥30-40  闪迪内存卡 60+。普通内存卡文件总损坏。
+树莓派专用电源：供电不足会遇到各种各样奇奇怪怪的问题。
+总计 &lt;￥600  ..." />
+    <meta name="keywords" content="环境搭建" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://daxinqqq.github.io">
+  <img class="avatar" src="https://daxinqqq.github.io/images/avatar.png?v=1652956404630" alt="">
+  </a>
+  <h1 class="site-title">
+    藏拙
+  </h1>
+  <p class="site-description">
+    三两老友七八老酒，十村踏遍一生还在
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/life" class="menu">
+          相册
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/daxinqqq" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              树莓派搭建个人主机
+            </h2>
+            <div class="post-info">
+              <span>
+                2022-05-19
+              </span>
+              <span>
+                15 min read
+              </span>
+              
+                <a href="https://daxinqqq.github.io/tag/Hviz3-Gnd/" class="post-tag">
+                  # 环境搭建
+                </a>
+              
+            </div>
+            
+              <img class="post-feature-image" src="https://api.lixingyong.com/api/images?postid=3&amp;type=url&amp;itype=image&amp;tc=680" alt="">
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <h2 id="清单">清单</h2>
+<h3 id="硬件">硬件</h3>
+<ul>
+<li>树莓派4b 4g 主板一块（带外壳套餐） ￥580+</li>
+<li><s>512G内存卡（附带读卡器） ￥30-40</s>  闪迪内存卡 60+。普通内存卡文件总损坏。</li>
+<li>树莓派专用电源：供电不足会遇到各种各样奇奇怪怪的问题。</li>
+<li>总计 <s>&lt;￥600</s>  &lt;￥700。</li>
+</ul>
+<h3 id="软件">软件</h3>
+<ul>
+<li>SDFormatter 内存卡格式化工具</li>
+<li>Win32DiskImager  镜像烧录工具</li>
+<li><a href="https://www.raspberrypi.org/software/operating-systems/#raspberry-pi-os-32-bit">操作系统图像 - 树莓派 (raspberrypi.org)</a>   下载官方镜像，约400+m。</li>
+</ul>
+<hr>
+<h2 id="初始化">初始化</h2>
+<ul>
+<li>
+<p>组装树莓派外壳，安装风扇。注意9层亚克力板顺序，有手就行。</p>
+</li>
+<li>
+<p>读卡器连接内存卡，用Win32DiskImager  烧录镜像。</p>
+</li>
+<li>
+<p>开启ssh：烧好镜像的内存卡，用电脑打开boot分区。新建一个ssh文件，文件无后缀。</p>
+</li>
+<li>
+<p>连接wifi：在boot分区新建名为wpa_supplicant.conf的文件，维护wifi用户名/密码</p>
+<pre><code class="language-shell">country=CN
+ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+update_config=1
+
+network={
+	ssid=&quot;wifi名称&quot;
+	psk=&quot;wifi密码&quot;
+	key_mgmt=WPA-PSK
+	priority=1
+}
+</code></pre>
+</li>
+<li>
+<p>开机：将初始化好的内存卡插入树莓派主板，通电即可。</p>
+</li>
+<li>
+<p>登录路由器管理端，获取主板连接wifi被分配的局域网ip</p>
+</li>
+<li>
+<p>ssh连接即可，默认账户：pi，密码：raspberry。</p>
+</li>
+<li>
+<p>切换国内源：sudo nano /etc/apt/sources.list  将初始化中的代码中默认的官方软件源注释掉 #， 添加下面的软件源</p>
+</li>
+</ul>
+<pre><code class="language-shell">deb http://mirrors.aliyun.com/raspbian/raspbian/ buster main contrib non-free rpi
+
+deb-src http://mirrors.aliyun.com/raspbian/raspbian/ buster main contrib non-free rpi
+
+#最后更新本地源
+ sudo apt-get update
+</code></pre>
+<ul>
+<li>
+<p>更改时区：sudo dpkg-reconfigure tzdata 选亚洲 Asia shanghai</p>
+</li>
+<li>
+<p>配置开机自启ssh：sudo raspi-config</p>
+<p>进入选择interfacing option 找到ssh 回车使enable。</p>
+<p>打开/etc/rc.local</p>
+<p>在exit 0 之前加入 /etc/init.d/ssh start</p>
+<p>interfaces编辑</p>
+<pre><code class="language-shell">cd /etc/network
+sudo nano /etc/network/interfaces
+#文件末尾加
+auto lo
+iface lo inet loopback
+iface eth0 inet dhcp
+auto wlan0
+allow-hotplug wlan0
+iface wlan0 inet dhcp
+wpa-ssid &quot;WiFi名称&quot;
+wpa-psk &quot;WiFi密码&quot;
+
+
+sudo nano /etc/wpa_supplicant/wpa_supplicant.conf
+
+</code></pre>
+</li>
+<li>
+<p>关机：sudo shutdown -h now</p>
+</li>
+</ul>
+<hr>
+<h2 id="软件安装">软件安装</h2>
+<pre><code class="language-shell">#git
+sudo apt-get install  curl git
+#避免每次pull都需要输入密码（单个项目）
+git config  credential.helper store 
+#maven
+sudo apt-get install maven
+#java
+sudo apt install openjdk-8-jdk
+#多版本时进行选择
+sudo update-alternatives --config java
+
+#docker
+sudo apt-get install docker.io
+#docker配置国内源
+vi /etc/docker/daemon.json
+
+{
+ &quot;registry-mirrors&quot; : [
+   &quot;https://mirror.ccs.tencentyun.com&quot;,
+   &quot;http://registry.docker-cn.com&quot;,
+   &quot;http://docker.mirrors.ustc.edu.cn&quot;,
+   &quot;http://hub-mirror.c.163.com&quot;
+ ],
+ &quot;insecure-registries&quot; : [
+   &quot;registry.docker-cn.com&quot;,
+   &quot;docker.mirrors.ustc.edu.cn&quot;
+ ],
+ &quot;debug&quot; : true,
+ &quot;experimental&quot; : true
+}
+
+#重启docker
+systemctl restart docker.service
+
+#docker安装mysql
+#docker pull --platform linux/x86_64 mysql
+docker pull biarms/mysql:5.7.30-linux-arm32v7
+
+#构建容器实例
+#sudo docker run -itd --name mysql-test -p 3306:3306 -e MYSQL_ROOT_PASSWORD=123456 mysql
+/home/pi/workspace/mysql57/conf
+-v /data/datadir/logs:/logs
+-v /home/pi/workspace/mysql57/my.cnf:/etc/mysql/conf.d/my.cnf -v /home/pi/workspace/mysql57/data:/var/lib/mysql
+
+docker run --name mysql57 \
+    -d \
+    --restart unless-stopped \
+    -p 127.0.0.1:3306:3306 \
+    -v /path/to/mysql57/data:/var/lib/mysql \
+    -v /path/to/mysql57/my.cnf:/etc/mysql/conf.d/my.cnf \
+    -e MYSQL_ALLOW_EMPTY_PASSWORD=yes \
+    debian-mysql-server-5.7
+
+#进入容器
+docker exec -it mysql bash
+#登录mysql
+mysql -u root -p
+ALTER USER 'root'@'localhost' IDENTIFIED BY 'Lzslov123!';
+
+#添加远程登录用户
+CREATE USER 'liaozesong'@'%' IDENTIFIED WITH mysql_native_password BY 'Lzslov123!';
+GRANT ALL PRIVILEGES ON *.* TO 'liaozesong'@'%';
+
+#zookeeper
+docker pull charlesyan/rpi-zookeeper
+
+docker run --name zookeeper -p 2181:2181  --restart=always -d charlesyan/rpi-zookeeper
+
+#redis
+docker pull redis
+sudo docker pull arm32v7/redis
+docker run -d --name myredis -p 6379:6379 arm32v7/redis --requirepass &quot;123456&quot;
+
+sudo docker run -d --name myredis -p 6379:6379 -v /home/pi/workspace/redis/conf/redis.conf:/etc/redis/redis.conf -v /home/pi/workspace/redis/data/:/data arm32v7/redis redis-server /etc/redis/redis.conf --appendonly yes
+
+sudo apt-get install redis
+/etc/init.d/redis-server restart
+
+</code></pre>
+<p>maven国内仓库</p>
+<pre><code class="language-xml">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+ 
+&lt;settings xmlns=&quot;http://maven.apache.org/SETTINGS/1.0.0&quot;
+	xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+	xsi:schemaLocation=&quot;http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd&quot;&gt;
+	&lt;pluginGroups&gt;
+		&lt;!-- pluginGroup | Specifies a further group identifier to use for plugin 
+			lookup. &lt;pluginGroup&gt;com.your.plugins&lt;/pluginGroup&gt; --&gt;
+		&lt;pluginGroup&gt;org.mortbay.jetty&lt;/pluginGroup&gt;
+	&lt;/pluginGroups&gt;
+ 
+	&lt;!-- proxies | This is a list of proxies which can be used on this machine 
+		to connect to the network. | Unless otherwise specified (by system property 
+		or command-line switch), the first proxy | specification in this list marked 
+		as active will be used. | --&gt;
+	&lt;proxies&gt;
+		&lt;!-- proxy | Specification for one proxy, to be used in connecting to the 
+			network. | &lt;proxy&gt; &lt;id&gt;optional&lt;/id&gt; &lt;active&gt;true&lt;/active&gt; &lt;protocol&gt;http&lt;/protocol&gt; 
+			&lt;username&gt;proxyuser&lt;/username&gt; &lt;password&gt;proxypass&lt;/password&gt; &lt;host&gt;proxy.host.net&lt;/host&gt; 
+			&lt;port&gt;80&lt;/port&gt; &lt;nonProxyHosts&gt;local.net|some.host.com&lt;/nonProxyHosts&gt; &lt;/proxy&gt; --&gt;
+	&lt;/proxies&gt;
+ 
+	&lt;!-- servers | This is a list of authentication profiles, keyed by the server-id 
+		used within the system. | Authentication profiles can be used whenever maven 
+		must make a connection to a remote server. | --&gt;
+	&lt;servers&gt;
+		&lt;!-- server | Specifies the authentication information to use when connecting 
+			to a particular server, identified by | a unique name within the system (referred 
+			to by the 'id' attribute below). | | NOTE: You should either specify username/password 
+			OR privateKey/passphrase, since these pairings are | used together. | &lt;server&gt; 
+			&lt;id&gt;deploymentRepo&lt;/id&gt; &lt;username&gt;repouser&lt;/username&gt; &lt;password&gt;repopwd&lt;/password&gt; 
+			&lt;/server&gt; --&gt;
+ 
+		&lt;!-- Another sample, using keys to authenticate. &lt;server&gt; &lt;id&gt;siteServer&lt;/id&gt; 
+			&lt;privateKey&gt;/path/to/private/key&lt;/privateKey&gt; &lt;passphrase&gt;optional; leave 
+			empty if not used.&lt;/passphrase&gt; &lt;/server&gt; --&gt;
+		&lt;server&gt;
+			&lt;id&gt;releases&lt;/id&gt;
+			&lt;username&gt;ali&lt;/username&gt;
+			&lt;password&gt;ali&lt;/password&gt;
+		&lt;/server&gt;
+		&lt;server&gt;
+			&lt;id&gt;Snapshots&lt;/id&gt;
+			&lt;username&gt;ali&lt;/username&gt;
+			&lt;password&gt;ali&lt;/password&gt;
+		&lt;/server&gt;
+	&lt;/servers&gt;
+ 
+	&lt;!-- mirrors | This is a list of mirrors to be used in downloading artifacts 
+		from remote repositories. | | It works like this: a POM may declare a repository 
+		to use in resolving certain artifacts. | However, this repository may have 
+		problems with heavy traffic at times, so people have mirrored | it to several 
+		places. | | That repository definition will have a unique id, so we can create 
+		a mirror reference for that | repository, to be used as an alternate download 
+		site. The mirror site will be the preferred | server for that repository. 
+		| --&gt;
+	&lt;mirrors&gt;
+		&lt;!-- mirror | Specifies a repository mirror site to use instead of a given 
+			repository. The repository that | this mirror serves has an ID that matches 
+			the mirrorOf element of this mirror. IDs are used | for inheritance and direct 
+			lookup purposes, and must be unique across the set of mirrors. | &lt;mirror&gt; 
+			&lt;id&gt;mirrorId&lt;/id&gt; &lt;mirrorOf&gt;repositoryId&lt;/mirrorOf&gt; &lt;name&gt;Human Readable 
+			Name for this Mirror.&lt;/name&gt; &lt;url&gt;http://my.repository.com/repo/path&lt;/url&gt; 
+			&lt;/mirror&gt; --&gt;
+		&lt;mirror&gt;
+			&lt;!--This sends everything else to /public --&gt;
+			&lt;id&gt;nexus&lt;/id&gt;
+			&lt;mirrorOf&gt;*&lt;/mirrorOf&gt;
+			&lt;url&gt;http://maven.aliyun.com/nexus/content/groups/public/&lt;/url&gt;
+		&lt;/mirror&gt;
+		&lt;mirror&gt;
+			&lt;!--This is used to direct the public snapshots repo in the profile below 
+				over to a different nexus group --&gt;
+			&lt;id&gt;nexus-public-snapshots&lt;/id&gt;
+			&lt;mirrorOf&gt;public-snapshots&lt;/mirrorOf&gt;
+			&lt;url&gt;http://maven.aliyun.com/nexus/content/repositories/snapshots/&lt;/url&gt;
+		&lt;/mirror&gt;
+	&lt;/mirrors&gt;
+ 
+	&lt;profiles&gt;
+		&lt;profile&gt;
+			&lt;id&gt;development&lt;/id&gt;
+			&lt;repositories&gt;
+				&lt;repository&gt;
+					&lt;id&gt;central&lt;/id&gt;
+					&lt;url&gt;http://central&lt;/url&gt;
+					&lt;releases&gt;
+						&lt;enabled&gt;true&lt;/enabled&gt;
+						&lt;updatePolicy&gt;always&lt;/updatePolicy&gt;
+					&lt;/releases&gt;
+					&lt;snapshots&gt;
+						&lt;enabled&gt;true&lt;/enabled&gt;
+						&lt;updatePolicy&gt;always&lt;/updatePolicy&gt;
+					&lt;/snapshots&gt;
+				&lt;/repository&gt;
+			&lt;/repositories&gt;
+			&lt;pluginRepositories&gt;
+				&lt;pluginRepository&gt;
+					&lt;id&gt;central&lt;/id&gt;
+					&lt;url&gt;http://central&lt;/url&gt;
+					&lt;releases&gt;
+						&lt;enabled&gt;true&lt;/enabled&gt;
+						&lt;updatePolicy&gt;always&lt;/updatePolicy&gt;
+					&lt;/releases&gt;
+					&lt;snapshots&gt;
+						&lt;enabled&gt;true&lt;/enabled&gt;
+						&lt;updatePolicy&gt;always&lt;/updatePolicy&gt;
+					&lt;/snapshots&gt;
+				&lt;/pluginRepository&gt;
+			&lt;/pluginRepositories&gt;
+		&lt;/profile&gt;
+		&lt;profile&gt;
+			&lt;!--this profile will allow snapshots to be searched when activated --&gt;
+			&lt;id&gt;public-snapshots&lt;/id&gt;
+			&lt;repositories&gt;
+				&lt;repository&gt;
+					&lt;id&gt;public-snapshots&lt;/id&gt;
+					&lt;url&gt;http://public-snapshots&lt;/url&gt;
+					&lt;releases&gt;
+						&lt;enabled&gt;false&lt;/enabled&gt;
+					&lt;/releases&gt;
+					&lt;snapshots&gt;
+						&lt;enabled&gt;true&lt;/enabled&gt;
+						&lt;updatePolicy&gt;always&lt;/updatePolicy&gt;
+					&lt;/snapshots&gt;
+				&lt;/repository&gt;
+			&lt;/repositories&gt;
+			&lt;pluginRepositories&gt;
+				&lt;pluginRepository&gt;
+					&lt;id&gt;public-snapshots&lt;/id&gt;
+					&lt;url&gt;http://public-snapshots&lt;/url&gt;
+					&lt;releases&gt;
+						&lt;enabled&gt;false&lt;/enabled&gt;
+					&lt;/releases&gt;
+					&lt;snapshots&gt;
+						&lt;enabled&gt;true&lt;/enabled&gt;
+						&lt;updatePolicy&gt;always&lt;/updatePolicy&gt;
+					&lt;/snapshots&gt;
+				&lt;/pluginRepository&gt;
+			&lt;/pluginRepositories&gt;
+		&lt;/profile&gt;
+	&lt;/profiles&gt;
+	&lt;activeProfiles&gt;
+		&lt;activeProfile&gt;development&lt;/activeProfile&gt;
+		&lt;activeProfile&gt;public-snapshots&lt;/activeProfile&gt;
+	&lt;/activeProfiles&gt;
+&lt;/settings&gt;
+</code></pre>
+<hr>
+<h3 id="一些奇奇怪怪问题的排查处理">一些奇奇怪怪问题的排查处理：</h3>
+<h4 id="关于wifi连接问题">关于wifi连接问题：</h4>
+<p>命令行连接wifi</p>
+<pre><code class="language-shell">sudo iwlist wlan0 scan列出所有可连接wifi
+
+sudo vi /etc/wpa_supplicant/wpa_supplicant.conf
+
+在文件的底部添加下面内容：
+
+network={
+    ssid=&quot;Your_wifi_ssif&quot;
+    psk=&quot;Your_wifi_password&quot;
+}
+1
+2
+3
+4
+保存退出
+
+几秒钟后应该就会连接上wifi
+若没有连接上，则需要手动重新挂载无线网卡
+
+ifconfig wlan0 down
+ifconfig wlan0 up
+1
+2
+若还是不生效，则reboot
+</code></pre>
+<p><strong>wifi文件丢失了？：</strong></p>
+<p>ssh跟wpa_supplicant.conf都会被系统移走，所以找不到不用担心。下次重启仍然可以连接wifi，仍然可以ssh，ip地址仍然是上次的ip。这就ok了，不是吗？</p>
+<p>SD卡里面这两个文件消失后，还可以重新拷贝一份，在放回另外一个树莓派中，这时候这个树莓派也可以连接Wi-Fi，运行ssh了。</p>
+<p><strong>conf文件格式：</strong></p>
+<p>在sd卡根目录下，新建wifi配置文件wpa_supplicant.conf。如果用windows系统编辑这个文件，需要选择采用Linux/Unix style格式的行结尾，例如用Notepad++，需要选择 “Edit” &gt; “EOL Conversion” &gt; “UNIX/OSX Format”。</p>
+<p><a href="https://shumeipai.nxez.com/2017/09/13/raspberry-pi-network-configuration-before-boot.html">无屏幕和键盘配置树莓派WiFi和SSH | 树莓派实验室 (nxez.com)</a></p>
+<p><a href="https://zhuanlan.zhihu.com/p/159290947">树莓派没有屏幕情况下连接wifi - 知乎 (zhihu.com)</a></p>
+<p><a href="https://www.bilibili.com/read/cv9346268/">树莓派4b 配置WiFi 探讨配置文件消失之谜 - 哔哩哔哩 (bilibili.com)</a></p>
+<h3 id="java应用启动">java应用启动</h3>
+<pre><code class="language-shell">#启动脚本
+cd ~/workspace/gp_share/
+
+git pull
+
+mvn clean -Dmaven.test.skip=true
+
+mvn install -Dmaven.test.skip=true
+cd share-parent/share-service/target/
+
+nohup java -XX:+UseG1GC -Xmx1024m -Xms1024m -jar share-service-1.0.0.jar &amp;
+</code></pre>
+<hr>
+<h3 id="docker-mysql挂掉问题-start容器提示structure-needs-cleaning">docker mysql挂掉问题 start容器提示Structure needs cleaning</h3>
+<pre><code class="language-shell">#查看docker内存使用
+sudo docker system df
+
+#命令可以用于清理磁盘，删除关闭的容器、无用的数据卷和网络，以及dangling镜像(即无tag的镜像)。
+sudo docker system prune
+</code></pre>
+<hr>
+<h3 id="docker挂掉">docker挂掉</h3>
+<pre><code class="language-shell">#docker无法重启
+$ sudo service docker restart
+Job for docker.service failed because the control process exited with error code.
+See &quot;systemctl status docker.service&quot; and &quot;journalctl -xe&quot; for details.
+
+
+
+#无法查看容器
+$ sudo docker container ls
+Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?
+
+#查看状态
+$ sudo systemctl status docker.service
+● docker.service - Docker Application Container Engine
+     Loaded: loaded (/lib/systemd/system/docker.service; enabled; vendor preset: enabled)
+     Active: failed (Result: exit-code) since Mon 2020-11-16 00:00:43 CST; 58s ago
+TriggeredBy: ● docker.socket
+       Docs: https://docs.docker.com
+    Process: 73218 ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock (code=exited, status=1/FAILURE)
+   Main PID: 73218 (code=exited, status=1/FAILURE)
+
+11月 16 00:00:43 pcxxx systemd[1]: docker.service: Scheduled restart job, restart counter is at 3.
+11月 16 00:00:43 pcxxx systemd[1]: Stopped Docker Application Container Engine.
+11月 16 00:00:43 pcxxx systemd[1]: docker.service: Start request repeated too quickly.
+11月 16 00:00:43 pcxxx systemd[1]: docker.service: Failed with result 'exit-code'.
+11月 16 00:00:43 pcxxx systemd[1]: Failed to start Docker Application Container Engine.
+
+
+#排查
+$ sudo dockerd --debug
+unable to configure the Docker daemon with file /etc/docker/daemon.json: invalid character '&quot;' after object key:value pair
+
+#修改配置文件
+sudo nano /etc/docker/daemon.json
+
+rm -rf /var/lib/docker
+</code></pre>
+<pre><code class="language-shell">#开放端口
+/etc/sysconfig/iptables
+-A INPUT -p tcp -m state --state NEW -m tcp --dport 8080 -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 3307 -j ACCEP
+
+yum install iptables-services
+systemctl enable iptables.service
+
+systemctl restart iptables
+service iptables restart
+
+service iptables save
+#下面这个命令可以看到开放的端口
+	
+/sbin/iptables -L -n
+netstat -ntlp
+</code></pre>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#%E6%B8%85%E5%8D%95">清单</a>
+<ul>
+<li><a href="#%E7%A1%AC%E4%BB%B6">硬件</a></li>
+<li><a href="#%E8%BD%AF%E4%BB%B6">软件</a></li>
+</ul>
+</li>
+<li><a href="#%E5%88%9D%E5%A7%8B%E5%8C%96">初始化</a></li>
+<li><a href="#%E8%BD%AF%E4%BB%B6%E5%AE%89%E8%A3%85">软件安装</a>
+<ul>
+<li><a href="#%E4%B8%80%E4%BA%9B%E5%A5%87%E5%A5%87%E6%80%AA%E6%80%AA%E9%97%AE%E9%A2%98%E7%9A%84%E6%8E%92%E6%9F%A5%E5%A4%84%E7%90%86">一些奇奇怪怪问题的排查处理：</a>
+<ul>
+<li><a href="#%E5%85%B3%E4%BA%8Ewifi%E8%BF%9E%E6%8E%A5%E9%97%AE%E9%A2%98">关于wifi连接问题：</a></li>
+</ul>
+</li>
+<li><a href="#java%E5%BA%94%E7%94%A8%E5%90%AF%E5%8A%A8">java应用启动</a></li>
+<li><a href="#docker-mysql%E6%8C%82%E6%8E%89%E9%97%AE%E9%A2%98-start%E5%AE%B9%E5%99%A8%E6%8F%90%E7%A4%BAstructure-needs-cleaning">docker mysql挂掉问题 start容器提示Structure needs cleaning</a></li>
+<li><a href="#docker%E6%8C%82%E6%8E%89">docker挂掉</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://daxinqqq.github.io/post/hong-hei-shu-zhi-yuan-li-xiang-jie/">
+              <h3 class="post-title">
+                红黑树之原理详解
+              </h3>
+            </a>
+          </div>
+        
+
+        
+          
+            <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+<div id="gitalk-container"></div>
+
+<script>
+
+  var gitalk = new Gitalk({
+    clientID: 'b6c0ef2f475ed881573c',
+    clientSecret: 'b5493c0a95abe0d4828c20461a2b9cfc74ae8fed',
+    repo: 'daxinqqq.github.io',
+    owner: 'daxinqqq',
+    admin: ['daxinqqq'],
+    id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+    distractionFreeMode: false  // Facebook-like distraction free mode
+  })
+
+  gitalk.render('gitalk-container')
+
+</script>
+
+          
+
+          
+        
+
+        <div class="site-footer">
+  Powered by-<a href="https://github.com/daxinqqq" target="_blank"> daxinqqq</a>
+  <a class="rss" href="https://daxinqqq.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>
