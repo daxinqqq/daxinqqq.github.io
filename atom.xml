@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://daxinqqq.github.io</id>
     <title>藏拙</title>
-    <updated>2022-05-19T10:34:31.147Z</updated>
+    <updated>2022-05-19T10:49:00.752Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://daxinqqq.github.io"/>
     <link rel="self" href="https://daxinqqq.github.io/atom.xml"/>
@@ -16,13 +16,14 @@
         <link href="https://daxinqqq.github.io/post/shu-mei-pai-da-jian-ge-ren-zhu-ji/">
         </link>
         <updated>2022-05-19T10:25:02.000Z</updated>
-        <content type="html"><![CDATA[<h2 id="清单">清单</h2>
+        <content type="html"><![CDATA[<h1 id="树莓派搭建个人主机">树莓派搭建个人主机</h1>
+<h2 id="清单">清单</h2>
 <h3 id="硬件">硬件</h3>
 <ul>
 <li>树莓派4b 4g 主板一块（带外壳套餐） ￥580+</li>
 <li><s>512G内存卡（附带读卡器） ￥30-40</s>  闪迪内存卡 60+。普通内存卡文件总损坏。</li>
 <li>树莓派专用电源：供电不足会遇到各种各样奇奇怪怪的问题。</li>
-<li>总计 <s>&lt;￥600</s>  &lt;￥700。</li>
+<li>总计&lt;￥600。</li>
 </ul>
 <h3 id="软件">软件</h3>
 <ul>
@@ -49,8 +50,8 @@ ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
 update_config=1
 
 network={
-	ssid=&quot;wifi名称&quot;
-	psk=&quot;wifi密码&quot;
+	ssid=&quot;你看见我的小鹿了吗&quot;
+	psk=&quot;jiaruimemeda1&quot;
 	key_mgmt=WPA-PSK
 	priority=1
 }
@@ -109,18 +110,24 @@ sudo nano /etc/wpa_supplicant/wpa_supplicant.conf
 </ul>
 <hr>
 <h2 id="软件安装">软件安装</h2>
+<h3 id="git">git</h3>
 <pre><code class="language-shell">#git
 sudo apt-get install  curl git
 #避免每次pull都需要输入密码（单个项目）
 git config  credential.helper store 
 #maven
 sudo apt-get install maven
-#java
+</code></pre>
+<hr>
+<h3 id="java">java</h3>
+<pre><code class="language-shell">#java
 sudo apt install openjdk-8-jdk
 #多版本时进行选择
 sudo update-alternatives --config java
-
-#docker
+</code></pre>
+<hr>
+<h3 id="docker">docker</h3>
+<pre><code class="language-shell">#docker
 sudo apt-get install docker.io
 #docker配置国内源
 vi /etc/docker/daemon.json
@@ -143,6 +150,11 @@ vi /etc/docker/daemon.json
 #重启docker
 systemctl restart docker.service
 
+​````shell
+
+----
+### mysql
+​````shell
 #docker安装mysql
 #docker pull --platform linux/x86_64 mysql
 docker pull biarms/mysql:5.7.30-linux-arm32v7
@@ -171,24 +183,29 @@ ALTER USER 'root'@'localhost' IDENTIFIED BY 'Lzslov123!';
 #添加远程登录用户
 CREATE USER 'liaozesong'@'%' IDENTIFIED WITH mysql_native_password BY 'Lzslov123!';
 GRANT ALL PRIVILEGES ON *.* TO 'liaozesong'@'%';
-
-#zookeeper
+</code></pre>
+<hr>
+<h3 id="zookeeper">zookeeper</h3>
+<pre><code class="language-shell">#zookeeper
 docker pull charlesyan/rpi-zookeeper
 
 docker run --name zookeeper -p 2181:2181  --restart=always -d charlesyan/rpi-zookeeper
-
-#redis
+</code></pre>
+<hr>
+<h3 id="redis">redis</h3>
+<pre><code class="language-shell">#redis
 docker pull redis
 sudo docker pull arm32v7/redis
 docker run -d --name myredis -p 6379:6379 arm32v7/redis --requirepass &quot;123456&quot;
 
 sudo docker run -d --name myredis -p 6379:6379 -v /home/pi/workspace/redis/conf/redis.conf:/etc/redis/redis.conf -v /home/pi/workspace/redis/data/:/data arm32v7/redis redis-server /etc/redis/redis.conf --appendonly yes
 
+#不通过docker安装
 sudo apt-get install redis
 /etc/init.d/redis-server restart
-
 </code></pre>
-<p>maven国内仓库</p>
+<hr>
+<h3 id="maven国内仓库配置">maven国内仓库配置</h3>
 <pre><code class="language-xml">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
  
 &lt;settings xmlns=&quot;http://maven.apache.org/SETTINGS/1.0.0&quot;
@@ -338,8 +355,22 @@ sudo apt-get install redis
 &lt;/settings&gt;
 </code></pre>
 <hr>
-<h3 id="一些奇奇怪怪问题的排查处理">一些奇奇怪怪问题的排查处理：</h3>
-<h4 id="关于wifi连接问题">关于wifi连接问题：</h4>
+<h3 id="java应用启动">java应用启动</h3>
+<pre><code class="language-shell">#启动脚本
+cd ~/workspace/gp_share/
+
+git pull
+
+mvn clean -Dmaven.test.skip=true
+
+mvn install -Dmaven.test.skip=true
+cd share-parent/share-service/target/
+
+nohup java -XX:+UseG1GC -Xmx1024m -Xms1024m -jar share-service-1.0.0.jar &amp;
+</code></pre>
+<hr>
+<h2 id="一些奇奇怪怪问题的排查处理">一些奇奇怪怪问题的排查处理：</h2>
+<h3 id="关于wifi连接问题">关于wifi连接问题：</h3>
 <p>命令行连接wifi</p>
 <pre><code class="language-shell">sudo iwlist wlan0 scan列出所有可连接wifi
 
@@ -366,7 +397,7 @@ ifconfig wlan0 up
 2
 若还是不生效，则reboot
 </code></pre>
-<p><strong>wifi文件丢失了？：</strong></p>
+<h3 id="wifi文件丢失了">wifi文件丢失了？：</h3>
 <p>ssh跟wpa_supplicant.conf都会被系统移走，所以找不到不用担心。下次重启仍然可以连接wifi，仍然可以ssh，ip地址仍然是上次的ip。这就ok了，不是吗？</p>
 <p>SD卡里面这两个文件消失后，还可以重新拷贝一份，在放回另外一个树莓派中，这时候这个树莓派也可以连接Wi-Fi，运行ssh了。</p>
 <p><strong>conf文件格式：</strong></p>
@@ -374,19 +405,6 @@ ifconfig wlan0 up
 <p><a href="https://shumeipai.nxez.com/2017/09/13/raspberry-pi-network-configuration-before-boot.html">无屏幕和键盘配置树莓派WiFi和SSH | 树莓派实验室 (nxez.com)</a></p>
 <p><a href="https://zhuanlan.zhihu.com/p/159290947">树莓派没有屏幕情况下连接wifi - 知乎 (zhihu.com)</a></p>
 <p><a href="https://www.bilibili.com/read/cv9346268/">树莓派4b 配置WiFi 探讨配置文件消失之谜 - 哔哩哔哩 (bilibili.com)</a></p>
-<h3 id="java应用启动">java应用启动</h3>
-<pre><code class="language-shell">#启动脚本
-cd ~/workspace/gp_share/
-
-git pull
-
-mvn clean -Dmaven.test.skip=true
-
-mvn install -Dmaven.test.skip=true
-cd share-parent/share-service/target/
-
-nohup java -XX:+UseG1GC -Xmx1024m -Xms1024m -jar share-service-1.0.0.jar &amp;
-</code></pre>
 <hr>
 <h3 id="docker-mysql挂掉问题-start容器提示structure-needs-cleaning">docker mysql挂掉问题 start容器提示Structure needs cleaning</h3>
 <pre><code class="language-shell">#查看docker内存使用
@@ -434,6 +452,8 @@ sudo nano /etc/docker/daemon.json
 
 rm -rf /var/lib/docker
 </code></pre>
+<hr>
+<h3 id="操作开放端口">操作开放端口</h3>
 <pre><code class="language-shell">#开放端口
 /etc/sysconfig/iptables
 -A INPUT -p tcp -m state --state NEW -m tcp --dport 8080 -j ACCEPT
