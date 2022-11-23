@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://daxinqqq.github.io</id>
     <title>藏拙</title>
-    <updated>2022-11-23T03:16:03.420Z</updated>
+    <updated>2022-11-23T03:28:14.262Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://daxinqqq.github.io"/>
     <link rel="self" href="https://daxinqqq.github.io/atom.xml"/>
@@ -10,6 +10,56 @@
     <logo>https://daxinqqq.github.io/images/avatar.png</logo>
     <icon>https://daxinqqq.github.io/favicon.ico</icon>
     <rights>All rights reserved 2022, 藏拙</rights>
+    <entry>
+        <title type="html"><![CDATA[谈JVM xmx, xms等内存相关参数合理性设置]]></title>
+        <id>https://daxinqqq.github.io/post/tan-jvm-xmx-xms-deng-nei-cun-xiang-guan-can-shu-he-li-xing-she-zhi/</id>
+        <link href="https://daxinqqq.github.io/post/tan-jvm-xmx-xms-deng-nei-cun-xiang-guan-can-shu-he-li-xing-she-zhi/">
+        </link>
+        <updated>2022-11-23T03:17:29.000Z</updated>
+        <content type="html"><![CDATA[<h1 id="1-堆内内存">1. 堆内内存</h1>
+<p>堆内内存是分配给JVM的部分内存，用来存放所有Java Class对象实例和数组，JVM GC操作的就是这部分内容。我们先来回顾一下堆内内存的模型：<br>
+<img src="https://daxinqqq.github.io/post-images/1669173573483.png" alt="" loading="lazy"></p>
+<p>堆内内存包括年轻代（浅绿色），老年代（浅蓝色），在JDK7或者更老的版本，图中右边还有个永久代（永久代在逻辑上位于JVM的堆区，但又被称为非堆内存，在JDK8中被元空间取代）。JVM有动态调整内存策略，通过**-Xms，-Xmx <strong>指定堆内内存动态调整的上下限。 在JVM初始化时实际只分配部分内存，可通过</strong>-XX:InitialHeapSize<strong>指定初始堆内存大小，未被分配的空间为图中virtual部分。年轻代和老年代在每次GC的时候都有可能调整大小，以保证存活对象占用百分比在特定阈值范围内，直到达到Xms指定的下限或Xms指定的上限。（阈值范围通过</strong>-XX:MinHeapFreeRatio, XX:MaxHeapFreeRatio**指定，默认值分别为40， 70）。</p>
+<p>GC调优中还有个的重要参数是老年代和年轻代的比例，通过**-XX:NewRatio<strong>设定，与此相关的还有</strong>-XX:MaxNewSize和-XX:NewSize**，分别设定年轻代大小的上下限，<strong>-Xmn</strong>则直接指定年轻代的大小。</p>
+<h2 id="11-参数默认值">1.1 参数默认值</h2>
+<p>◦**-Xmx:** Xmx的默认值比较复杂，官方文档上有时候写的是1GB，但实际值跟JRE版本、JVM 模式（client, server）和系统（平台类型，32位，64位）等都有关。经过查阅源码和实验，确定在生产环境下（server模式，64位Centos，JRE 8），Xmx的默认值可以采用以下规则计算：</p>
+<ul>
+<li>容器内存小于等于2G：默认值为容器内存的1/2，最小16MB， 最大512MB。</li>
+<li>容器内存大于2G：默认值为容器内存的1/4, 最大可到达32G。<br>
+◦**-Xms: <strong>默认值为容器内存的1/64, 最小8MB，如果明确指定了Xmx并且小于容器内存1/64, Xms默认值为Xmx指定的值。<br>
+◦</strong>-NewRatio: **默认2，即年轻代和年老代的比例为1:2， 年轻代大小为堆内内存的1/3。</li>
+</ul>
+<p><strong>NOTE：在JRE版本1.8.0_131之前，JVM无法感知Docker的资源限制，Xmx, Xms未明确指定时，会使用宿主机的内存计算默认值。</strong></p>
+<h2 id="12-最佳实践">1.2 最佳实践</h2>
+<p>由于每次Eden区满就会触发YGC，而每次YGC的时候，晋升到老年代的对象大小超过老年代剩余空间的时候，就会触发FGC。所以基本来说，GC频率和堆内内存大小是成反比的，也就是说堆内内存越大，吞吐量越大。</p>
+<p>如果Xmx设置过小，不仅浪费了容器资源，在大流量下会频繁GC，导致一系列问题，包括吞吐量降低，响应变长，CPU升高，java.lang.OutOfMemoryError异常等。当然Xmx也不建议设置过大，否则会导致进程hang住或者使用容器Swap。所以合理设置Xmx非常重要，特别是对于1.8.0_131之前的版本，一定要明确指定Xmx。<strong>推荐上限为容器内存的80%，下限为容器内存的50%。</strong></p>
+<p>JVM的动态内存策略不太适合服务使用，因为每次GC需要计算Heap是否需要伸缩，内存抖动需要向系统申请或释放内存，特别是在服务重启的预热阶段，内存抖动会比较频繁。另外，容器中如果有其他进程还在消费内存，JVM内存抖动时可能申请内存失败，导致OOM。因此建议服务模式下，将Xms设置Xmx一样的值。</p>
+<p>NewRatio建议在2~3之间，最优选择取决于对象的生命周期分布。一般先确定老年代的空间（足够放下所有live data，并适当增加10%~20%)，其余是年轻代，年轻代大小一定要小于老年代。</p>
+<p>另外，以上建议都是基于一个容器部署一个JVM实例的使用情况。有个别需求，需要在一个容器内启用多个JVM，或者包含其他语言的，研发需要按业务需求在推荐值范围内分配JVM的Xmx。</p>
+<h1 id="2-堆外内存">2. 堆外内存</h1>
+<p>和堆内内存对应的就是堆外内存。堆外内存包括很多部分，比如Code Cache， Memory Pool，Stack Memory，Direct Byte Buffers, Metaspace等等，其中我们需要重点关注的是Direct Byte Buffers和Metaspace。</p>
+<h2 id="21-direct-byte-buffers">2.1 Direct Byte Buffers</h2>
+<p>Direct Byte Buffers是系统原生内存，不位于JVM里，狭义上的堆外内存就是指的Direct Byte Buffers。为什么要使用系统原生内存呢? 为了更高效的进行Socket I/O或文件读写等内核态资源操作，会使用JNI（Java原生接口），此时操作的内存需要是连续和确定的。而Heap中的内存不能保证连续，且GC也可能导致对象随时移动。因此涉及Output操作时，不直接使用Heap上的数据，需要先从Heap上拷贝到原生内存，Input操作则相反。因此为了避免多余的拷贝，提高I/O效率，不少第三方包和框架使用Direct Byte Buffers，比Netty。</p>
+<p>Direct Byte Buffers虽然有上述优点，但使用起来也有一定风险。常见的Direct Byte Buffers使用方法是用java.nio.DirectByteBuffer的unsafe.allocateMemory方法来创建，DirectByteBuffer对象只保存了系统分配的原生内存的大小和启始位置，这些原生内存的释放需要等到DirectByteBuffer对象被回收。有些特殊的情况下（比如JVM一直没有FGC，设置-XX:+DisableExplicitGC禁用了System.gc），这部分对象会持续增加，直到堆外内存达到-XX:MaxDirectMemorySize 指定的大小或者耗尽所有的系统内存。</p>
+<p>MaxDirectMemorySize不明确指定的时候，默认值为0，在代码中实际为Runtime.getRuntime().maxMemory()，略小于-Xmx指定的值（堆内内存的最大值减去一个Survivor区大小）。此默认值有点过大，MaxDirectMemorySize未设置或设置过大，有可能发生堆外内存泄露，导致进程被系统Kill。</p>
+<p>由于存在一定风险，建议在启动参数里明确指定-XX:MaxDirectMemorySize的值，并满足下面规则：</p>
+<ul>
+<li>**Xmx * 110% + MaxDirectMemorySize + 系统预留内存 &lt;= 容器内存 **</li>
+<li>系统预留内存512M到1G，视容器规格而定</li>
+<li>I/O较多的业务适当提高MaxDirectMemorySize比例</li>
+</ul>
+<h2 id="22-metaspace">2.2 Metaspace</h2>
+<p>Metaspace（元空间）是JDK8关于方法区新的实现，取代之前的永久代，用来保存类、方法、数据结构等运行时信息和元信息的。很多研发在老版本时可能遇到过java.lang.OutOfMemoryError: PermGen Space，这说明永久代的空间不够用了，可以通过-XX:PermSize，-XX:MaxPermSize来指定永久代的初始大小和最大大小。Metaspace取代永久代，位置由JVM内存变成系统原生内存，也取消默认的最大空间限制。与此有关的参数主要有下面两个：</p>
+<ul>
+<li><strong>-XX:MaxMetaspaceSize</strong> 指定元空间的最大空间，默认为容器剩余的所有空间</li>
+<li><strong>-XX:MetaspaceSize</strong> 指定元空间首次扩充的大小，默认为20.8M<br>
+由于MaxMetaspaceSize未指定时，默认无上限，所以需要特别关注内存泄露的问题，如果程序动态的创建了很多类，或出现过java.lang.OutOfMemoryError:Metaspace，建议明确指定-XX:MaxMetaspaceSize。另外Metaspace实际分配的大小是随着需要逐步扩大的，每次扩大需要一次FGC，-XX:MetaspaceSize默认的值比较小，需要频繁GC扩充到需要的大小。通过下面的日志可以看到Metaspace引起的FGC：</li>
+</ul>
+<pre><code>[Full GC (Metadata GC Threshold) ...]
+</code></pre>
+<p>为减少预热影响，可以将-XX:MetaspaceSize，-XX:MaxMetaspaceSize指定成相同的值。另外不少应用由JDK7升级到了JDK8，但是启动参数中仍有-XX:PermSize，-XX:MaxPermSize，<strong>这些参数是不生效的</strong>，建议修改成-XX:MetaspaceSize，-XX:MaxMetaspaceSize。</p>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[谈JVM参数GC线程数ParallelGCThreads合理性设置]]></title>
         <id>https://daxinqqq.github.io/post/tan-jvm-can-shu-gc-xian-cheng-shu-parallelgcthreads-he-li-xing-she-zhi/</id>
@@ -78,6 +128,42 @@
 </tr>
 </tbody>
 </table>
+<h1 id="这里再补充一下新支持的两个检测concgcthreadscicompilercount">这里再补充一下新支持的两个检测，ConcGCThreads，CICompilerCount。</h1>
+<p>ConcGCThreads一般称为并发标记线程数，为了减少GC的STW的时间，CMS和G1都有并发标记的过程，此时业务线程仍在工作，只是并发标记是CPU密集型任务，业务的吞吐量会下降，RT会变长。ConcGCThreads的默认值不同GC策略略有不同，CMS下是(ParallelGCThreads + 3) / 4 向下取整，G1下是ParallelGCThreads / 4 四舍五入。一般来说采用默认值就可以了，但是还是由于在JRE版本1.8.0_131之前，JVM无法感知Docker的资源限制的问题，ConcGCThreads的默认值会比较大（20左右），对业务会有影响。</p>
+<p>CICompilerCount是JIT进行热点编译的线程数，和并发标记线程数一样，热点编译也是CPU密集型任务，默认值为2。在CICompilerCountPerCPU开启的时候（JDK7默认关闭，JDK8默认开启），手动指定CICompilerCount是不会生效的，JVM会使用系统CPU核数进行计算。所以当使用JRE8并且版本小于1.8.0_131，采用默认参数时，CICompilerCount会在20左右，对业务性能影响较大，特别是启动阶段。建议升级Java版本，特殊情况要使用老版本Java 8，请加上**-XX:CICompilerCount=[n],** 同时不能指定**-XX:+CICompilerCountPerCPU** ，下表给出了生产环境下常见规格的推荐值。</p>
+<table>
+<thead>
+<tr>
+<th>容器CPU核数</th>
+<th>1</th>
+<th>2</th>
+<th>4</th>
+<th>8</th>
+<th>16</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CICompilerCount手动指定推荐值</td>
+<td>2</td>
+<td>2</td>
+<td>3</td>
+<td>3</td>
+<td>8</td>
+</tr>
+</tbody>
+</table>
+<h2 id="修改建议">修改建议</h2>
+<p>1） 再次建议升级JRE版本到1.8.0_191及以上；<br>
+2） 建议在Shell脚本中，Export JAVA_OPTS环境变量, 至少包含以下几项(方括号中的值根据文中推荐选取)：</p>
+<pre><code>-server -Xms[8192m] -Xmx[8192m] -XX:MaxDirectMemorySize=[4096m]
+</code></pre>
+<p>如果特殊原因要使用1.8.0_131以下版本， 则同时需要加上以下参数(方括号中的值根据文中推荐选取)：</p>
+<pre><code>-XX:ParallelGCThreads=[8] -XX:ConcGCThreads=[2] -XX:CICompilerCount=[2]
+</code></pre>
+<p>下面的项建议测试后使用，需自行确定具体大小（特别是使用JRE8但仍配置-XX:PermSize，-XX:MaxPermSize的应用）：</p>
+<pre><code>-XX:MaxMetaspaceSize=256m -XX:MetaspaceSize=256m
+</code></pre>
 ]]></content>
     </entry>
     <entry>

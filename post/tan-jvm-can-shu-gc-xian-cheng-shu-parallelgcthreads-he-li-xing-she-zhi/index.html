@@ -3,7 +3,7 @@
     <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>谈JVM参数GC线程数ParallelGCThreads合理性设置 | 藏拙</title>
-<link rel="shortcut icon" href="https://daxinqqq.github.io/favicon.ico?v=1669173359068">
+<link rel="shortcut icon" href="https://daxinqqq.github.io/favicon.ico?v=1669174089887">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
 <link rel="stylesheet" href="https://daxinqqq.github.io/styles/main.css">
 <link rel="alternate" type="application/atom+xml" title="谈JVM参数GC线程数ParallelGCThreads合理性设置 | 藏拙 - Atom Feed" href="https://daxinqqq.github.io/atom.xml">
@@ -22,7 +22,7 @@
       <div class="main-content">
         <div class="site-header">
   <a href="https://daxinqqq.github.io">
-  <img class="avatar" src="https://daxinqqq.github.io/images/avatar.png?v=1669173359068" alt="">
+  <img class="avatar" src="https://daxinqqq.github.io/images/avatar.png?v=1669174089887" alt="">
   </a>
   <h1 class="site-title">
     藏拙
@@ -86,7 +86,7 @@
                 2022-11-23
               </span>
               <span>
-                4 min read
+                6 min read
               </span>
               
             </div>
@@ -155,6 +155,42 @@
 </tr>
 </tbody>
 </table>
+<h1 id="这里再补充一下新支持的两个检测concgcthreadscicompilercount">这里再补充一下新支持的两个检测，ConcGCThreads，CICompilerCount。</h1>
+<p>ConcGCThreads一般称为并发标记线程数，为了减少GC的STW的时间，CMS和G1都有并发标记的过程，此时业务线程仍在工作，只是并发标记是CPU密集型任务，业务的吞吐量会下降，RT会变长。ConcGCThreads的默认值不同GC策略略有不同，CMS下是(ParallelGCThreads + 3) / 4 向下取整，G1下是ParallelGCThreads / 4 四舍五入。一般来说采用默认值就可以了，但是还是由于在JRE版本1.8.0_131之前，JVM无法感知Docker的资源限制的问题，ConcGCThreads的默认值会比较大（20左右），对业务会有影响。</p>
+<p>CICompilerCount是JIT进行热点编译的线程数，和并发标记线程数一样，热点编译也是CPU密集型任务，默认值为2。在CICompilerCountPerCPU开启的时候（JDK7默认关闭，JDK8默认开启），手动指定CICompilerCount是不会生效的，JVM会使用系统CPU核数进行计算。所以当使用JRE8并且版本小于1.8.0_131，采用默认参数时，CICompilerCount会在20左右，对业务性能影响较大，特别是启动阶段。建议升级Java版本，特殊情况要使用老版本Java 8，请加上**-XX:CICompilerCount=[n],** 同时不能指定**-XX:+CICompilerCountPerCPU** ，下表给出了生产环境下常见规格的推荐值。</p>
+<table>
+<thead>
+<tr>
+<th>容器CPU核数</th>
+<th>1</th>
+<th>2</th>
+<th>4</th>
+<th>8</th>
+<th>16</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CICompilerCount手动指定推荐值</td>
+<td>2</td>
+<td>2</td>
+<td>3</td>
+<td>3</td>
+<td>8</td>
+</tr>
+</tbody>
+</table>
+<h2 id="修改建议">修改建议</h2>
+<p>1） 再次建议升级JRE版本到1.8.0_191及以上；<br>
+2） 建议在Shell脚本中，Export JAVA_OPTS环境变量, 至少包含以下几项(方括号中的值根据文中推荐选取)：</p>
+<pre><code>-server -Xms[8192m] -Xmx[8192m] -XX:MaxDirectMemorySize=[4096m]
+</code></pre>
+<p>如果特殊原因要使用1.8.0_131以下版本， 则同时需要加上以下参数(方括号中的值根据文中推荐选取)：</p>
+<pre><code>-XX:ParallelGCThreads=[8] -XX:ConcGCThreads=[2] -XX:CICompilerCount=[2]
+</code></pre>
+<p>下面的项建议测试后使用，需自行确定具体大小（特别是使用JRE8但仍配置-XX:PermSize，-XX:MaxPermSize的应用）：</p>
+<pre><code>-XX:MaxMetaspaceSize=256m -XX:MetaspaceSize=256m
+</code></pre>
 
               </div>
               <div class="toc-container">
@@ -163,6 +199,11 @@
 <li><a href="#2-parallelgcthreads%E5%8F%82%E6%95%B0%E8%AE%BE%E7%BD%AE">2. ParallelGCThreads参数设置</a></li>
 <li><a href="#3-parallelgcthreads%E5%8F%82%E6%95%B0%E5%AE%9E%E9%AA%8C">3. ParallelGCThreads参数实验</a></li>
 <li><a href="#5-parallelgcthreads%E4%BF%AE%E6%94%B9%E5%BB%BA%E8%AE%AE">5. ParallelGCThreads修改建议</a></li>
+<li><a href="#%E8%BF%99%E9%87%8C%E5%86%8D%E8%A1%A5%E5%85%85%E4%B8%80%E4%B8%8B%E6%96%B0%E6%94%AF%E6%8C%81%E7%9A%84%E4%B8%A4%E4%B8%AA%E6%A3%80%E6%B5%8Bconcgcthreadscicompilercount">这里再补充一下新支持的两个检测，ConcGCThreads，CICompilerCount。</a>
+<ul>
+<li><a href="#%E4%BF%AE%E6%94%B9%E5%BB%BA%E8%AE%AE">修改建议</a></li>
+</ul>
+</li>
 </ul>
 
               </div>
