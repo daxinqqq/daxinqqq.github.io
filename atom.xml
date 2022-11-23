@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://daxinqqq.github.io</id>
     <title>藏拙</title>
-    <updated>2022-05-19T10:56:18.825Z</updated>
+    <updated>2022-11-23T03:16:03.420Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://daxinqqq.github.io"/>
     <link rel="self" href="https://daxinqqq.github.io/atom.xml"/>
@@ -10,6 +10,76 @@
     <logo>https://daxinqqq.github.io/images/avatar.png</logo>
     <icon>https://daxinqqq.github.io/favicon.ico</icon>
     <rights>All rights reserved 2022, 藏拙</rights>
+    <entry>
+        <title type="html"><![CDATA[谈JVM参数GC线程数ParallelGCThreads合理性设置]]></title>
+        <id>https://daxinqqq.github.io/post/tan-jvm-can-shu-gc-xian-cheng-shu-parallelgcthreads-he-li-xing-she-zhi/</id>
+        <link href="https://daxinqqq.github.io/post/tan-jvm-can-shu-gc-xian-cheng-shu-parallelgcthreads-he-li-xing-she-zhi/">
+        </link>
+        <updated>2022-11-23T03:08:06.000Z</updated>
+        <content type="html"><![CDATA[<h1 id="1-parallelgcthreads参数含义">1. ParallelGCThreads参数含义</h1>
+<p>在讲这个参数之前，先谈谈JVM垃圾回收(GC)算法的两个优化标的：吞吐量和停顿时长。JVM会使用特定的GC收集线程，当GC开始的时候，GC线程会和业务线程抢占CPU时间，吞吐量定义为CPU用于业务线程的时间与CPU总消耗时间的比值。为了承接更大的流量，吞吐量越大越好。</p>
+<p>为了安全的垃圾回收，在GC或者GC某个阶段，所有业务线程都会被暂停，也就是STW（Stop The World)，STW持续时间就是停顿时长，停顿时长影响响应速度，因此越小越好。</p>
+<p>这两个优化目标是有冲突的，在一定范围内，参与GC的线程数越多，停顿时长越小，但吞吐量也越小。生产实践中，需要根据业务特点设置一个合理的GC线程数，取得吞吐量和停顿时长的平衡。</p>
+<p>目前广泛使用的GC算法，包括PS MarkSweep/PS Scavenge, ConcurrentMarkSweep/ParNew, G1等，都可以通过ParallelGCThreads参数来指定JVM在并行GC时参与垃圾收集的线程数。该值设置过小，GC暂停时间变长影响RT，设置过大则影响吞吐量，从而导致CPU过高。</p>
+<h1 id="2-parallelgcthreads参数设置">2. ParallelGCThreads参数设置</h1>
+<p>GC并发线程数可以通过JVM启动参数: -XX:ParallelGCThreads=<N>来指定。在未明确指定的情况下，JVM会根据逻辑核数ncpus，采用以下公式来计算默认值：</p>
+<ul>
+<li>当ncpus小于8时，ParallelGCThreads = ncpus</li>
+<li>否则 ParallelGCThreads = 8 + (ncpus - 8 ) ( 5/8 )<br>
+一般来说，在无特殊要求下，ParallelGCThreads参数使用默认值就可以了。**但是在JRE版本1.8.0_131之前，JVM无法感知Docker的CPU限制，会使用宿主机的逻辑核数计算默认值。**比如部署在128核物理机上的容器，JVM中默认ParallelGCThreads为83，远超过了容器的核数。过多的GC线程数抢占了业务线程的CPU时间，加上线程切换的开销，较大的降低了吞吐量。因此JRE 1.8.0_131之前的版本，未明确指定ParallelGCThreads会有较大的风险。</li>
+</ul>
+<h1 id="3-parallelgcthreads参数实验">3. ParallelGCThreads参数实验</h1>
+<p>使用 8C12G 容器，宿主机是128C。模拟线上真实流量，采用相同QPS，观察及对比JVM YoungGC，JVM CPU，容器CPU等监控数据。场景如下：</p>
+<ul>
+<li>场景1: JVM ParallelGCThreads 默认值，QPS = 420，持续5分钟，CPU恒定在70%</li>
+<li>场景2: JVM ParallelGCThreads=8，QPS = 420，持续5分钟，CPU恒定在65%</li>
+<li>场景3: JVM ParallelGCThreads 默认值，QPS瞬时发压到420，前1min CPU持续100%</li>
+<li>场景4: JVM ParallelGCThreads=8，QPS瞬时发压到420，前2s CPU持续100%，后面回落</li>
+</ul>
+<p>从监控数据来看，各场景下CPU差距较明显，特别是场景3和场景4的对比。场景3由于GC线程过多，CPU持续100%时长达1分钟。可以得出以下两个结论：</p>
+<p>1.修改 ParallelGCThreads = 8后，同等QPS情况下，CPU会降低5%左右<br>
+2.修改 ParallelGCThreads = 8后，<strong>瞬间发压且CPU打满情况下，CPU恢复较快</strong></p>
+<h1 id="5-parallelgcthreads修改建议">5. ParallelGCThreads修改建议</h1>
+<p>ParallelGCThreads配置存在风险的应用，修改方式为以下两种方案（任选一种）：</p>
+<ul>
+<li>升级JRE版本到1.8.0_131以上，推荐1.8.0_192</li>
+<li>在JVM启动参数明确指定 -XX:ParallelGCThreads=<N>，N为下表的推荐值：</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>容器核数</th>
+<th>2</th>
+<th>4</th>
+<th>8</th>
+<th>16</th>
+<th>32</th>
+<th>64</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>推荐值</td>
+<td>2</td>
+<td>4</td>
+<td>8</td>
+<td>13</td>
+<td>23</td>
+<td>43</td>
+</tr>
+<tr>
+<td>建议上下界</td>
+<td>1~2</td>
+<td>2~4</td>
+<td>4~8</td>
+<td>8~16</td>
+<td>16~32</td>
+<td>32~64</td>
+</tr>
+</tbody>
+</table>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[树莓派搭建个人主机]]></title>
         <id>https://daxinqqq.github.io/post/shu-mei-pai-da-jian-ge-ren-zhu-ji/</id>
